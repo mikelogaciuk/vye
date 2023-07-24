@@ -30,10 +30,10 @@ write_files:
         git clone https://opendev.org/openstack/devstack
         cd devstack
         echo '[[local|localrc]]' > local.conf
-        echo ADMIN_PASSWORD=$YOUR_SECRET_PWD >> local.conf
-        echo DATABASE_PASSWORD=$YOUR_SECRET_PWD >> local.conf
-        echo RABBIT_PASSWORD=$YOUR_SECRET_PWD >> local.conf
-        echo SERVICE_PASSWORD=$YOUR_SECRET_PWD >> local.conf
+        echo ADMIN_PASSWORD=${api_key} >> local.conf
+        echo DATABASE_PASSWORD=${api_key} >> local.conf
+        echo RABBIT_PASSWORD=${api_key} >> local.conf
+        echo SERVICE_PASSWORD=${api_key} >> local.conf
         echo enable_plugin ec2-api https://opendev.org/openstack/ec2-api >> local.conf
         ./stack.sh
     path: /home/stack/start.sh

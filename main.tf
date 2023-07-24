@@ -23,6 +23,7 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   user_data = templatefile("${path.module}/templates/user_data.tpl", {
     host_name = var.distros[count.index]
     auth_key  = file("${path.module}/ssh/id_rsa.pub")
+    api_key   = var.dev_stack_api_key
   })
   network_config = templatefile("${path.module}/templates/network_config.tpl", {
     interface = var.interface

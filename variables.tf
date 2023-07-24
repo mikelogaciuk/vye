@@ -30,3 +30,6 @@ variable "macs" {
   type    = list(any)
   default = ["52:54:00:0e:87:be"]
 }
+variable "dev_stack_api_key" {
+  type = string
+}
