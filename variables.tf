@@ -12,7 +12,7 @@ variable "memory" {
 }
 variable "vcpu" {
   type    = number
-  default = 12
+  default = 14
 }
 variable "distros" {
   type    = list(any)

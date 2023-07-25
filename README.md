@@ -44,7 +44,7 @@ First, we need a virtual machine that will do the stuff for us - but for this, w
 
 Instructions on how to install them can be found [here](https://hashnode.com/post/cljrmc4ed000209mlhxjk3k0y).
 
-In my case, my PC has 16vCPUs & 48GB of RAM, but to sustain host operability. I will limit its resources to 12 vCPUs and 40 GB of RAM.
+In my case, my PC has 16vCPUs & 48GB of RAM, but to sustain host operability. I will limit its resources to 14 vCPUs and 40 GB of RAM.
 
 ## Manual setup
 
@@ -150,6 +150,7 @@ write_files:
         #!/bin/sh
         DEBIAN_FRONTEND=noninteractive sudo apt-get -qqy update || sudo yum update -qy
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -qqy git || sudo yum install -qy git
+        sudo apt install btop
         sudo chown stack:stack /home/stack
         cd /home/stack
         git clone https://opendev.org/openstack/devstack
@@ -160,6 +161,14 @@ write_files:
         echo RABBIT_PASSWORD=${api_key} >> local.conf
         echo SERVICE_PASSWORD=${api_key} >> local.conf
         echo enable_plugin ec2-api https://opendev.org/openstack/ec2-api >> local.conf
+        echo enable_plugin barbican https://opendev.org/openstack/barbican >> local.conf
+        echo enable_plugin mistral https://github.com/openstack/mistral >> local.conf
+        echo enable_plugin senlin https://git.openstack.org/openstack/senlin >> local.conf
+        echo enable_plugin senlin-dashboard https://git.openstack.org/openstack/senlin-dashboard >> local.conf
+        echo enable_plugin heat https://git.openstack.org/openstack/heat >> local.conf
+        echo enable_plugin sahara https://opendev.org/openstack/sahara >> local.conf
+        echo enable_plugin trove https://opendev.org/openstack/trove >> local.conf
+        echo enable_plugin trove-dashboard https://opendev.org/openstack/trove-dashboard >> local.conf
         ./stack.sh
     path: /home/stack/start.sh
     permissions: 0755
@@ -229,7 +238,7 @@ variable "memory" {
 }
 variable "vcpu" {
   type    = number
-  default = 12
+  default = 14
 }
 variable "distros" {
   type    = list(any)
@@ -319,16 +328,24 @@ resource "libvirt_domain" "domain-distro" {
 }
 ```
 
-### Run the machine
+## Run the machine
 
 To run the machine type:
 
 ```bash
 $ terraform init
 $ terraform apply --auto-aprove
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+libvirt_volume.distro-qcow2[0]: Creating...
+libvirt_cloudinit_disk.commoninit[0]: Creating...
+libvirt_volume.distro-qcow2[0]: Creation complete after 1s [id=/home/runner/repos/vye/volumes/ubuntu.qcow2]
+libvirt_cloudinit_disk.commoninit[0]: Creation complete after 1s [id=/home/runner/repos/vye/volumes/commoninit-ubuntu.iso;0a9296a6-2cd2-4a1f-b595-726a63cc81a5]
+libvirt_domain.domain-distro[0]: Creating...
+libvirt_domain.domain-distro[0]: Creation complete after 0s [id=1c98a9be-0554-47fb-a98d-65b54a6f93ae]
 ```
 
-### Connect
+## Connect
 
 In order to connect to the VM, type:
 
@@ -336,106 +353,33 @@ In order to connect to the VM, type:
 ssh vye@192.168.122.11
 ```
 
-Then you should be able to operate on your newly created host:
-
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1689887529894/39bcf5d5-7e1d-485f-a91c-498904c0b0d7.png align="center")
-
-### Cloud-init
-
-After 10 minutes or so, you should see something like this once you type:
+Or far more pleasant (at least for me):
 
 ```bash
-$ sudo tail -100 /var/log/cloud-init-output.log
+ssh -t vye@192.168.122.11 bash -l
+```
 
-+ ./stack.sh:main:1517                     :   set +o xtrace
+Then you should be able to operate on your newly created host.
 
-=========================
-DevStack Component Timing
- (times are in seconds)
-=========================
-wait_for_service       6
-async_wait            67
-osc                   80
-apt-get              163
-test_with_retry        2
-dbsync                 4
-pip_install           97
-apt-get-update         0
-run_process            9
-git_timed            160
--------------------------
-Unaccounted time      74
-=========================
-Total runtime        662
+## Cloud-init
 
-=================
- Async summary
-=================
- Time spent in the background minus waits: 165 sec
- Elapsed time: 662 sec
- Time if we did everything serially: 827 sec
- Speedup:  1.24924
+The setup should take about 30 minutes. In order to watch the process live in the console, you can type:
 
+```bash
+watch 'sudo tail -30 /var/log/cloud-init-output.log'
+```
 
-Post-stack database query stats:
-+------------+-----------+-------+
-| db         | op        | count |
-+------------+-----------+-------+
-| keystone   | SELECT    | 41516 |
-| keystone   | INSERT    |    96 |
-| glance     | SELECT    |  1002 |
-| glance     | CREATE    |    65 |
-| glance     | INSERT    |   254 |
-| glance     | SHOW      |     8 |
-| glance     | UPDATE    |    17 |
-| glance     | ALTER     |     9 |
-| glance     | DROP      |     1 |
-| cinder     | SELECT    |   148 |
-| cinder     | CREATE    |    74 |
-| cinder     | SET       |     1 |
-| cinder     | ALTER     |    21 |
-| neutron    | SELECT    |  4880 |
-| neutron    | SHOW      |    45 |
-| neutron    | CREATE    |   317 |
-| neutron    | INSERT    |  1190 |
-| neutron    | UPDATE    |   222 |
-| neutron    | ALTER     |   191 |
-| neutron    | DROP      |    53 |
-| neutron    | DELETE    |    25 |
-| nova_cell1 | SELECT    |   146 |
-| nova_cell1 | CREATE    |   211 |
-| nova_cell0 | SELECT    |   160 |
-| nova_cell0 | CREATE    |   211 |
-| nova_cell1 | ALTER     |     3 |
-| nova_cell1 | SHOW      |    59 |
-| nova_cell0 | ALTER     |     3 |
-| nova_cell0 | SHOW      |    59 |
-| nova_cell1 | INSERT    |     6 |
-| nova_cell0 | INSERT    |     9 |
-| placement  | SELECT    |    35 |
-| placement  | INSERT    |    57 |
-| placement  | SET       |     3 |
-| nova_api   | SELECT    |    98 |
-| placement  | UPDATE    |     3 |
-| cinder     | INSERT    |     5 |
-| nova_cell1 | UPDATE    |     7 |
-| cinder     | UPDATE    |     6 |
-| nova_cell0 | UPDATE    |    18 |
-| nova_api   | SAVEPOINT |    10 |
-| nova_api   | INSERT    |    15 |
-| nova_api   | RELEASE   |    10 |
-| cinder     | DELETE    |     1 |
-| keystone   | DELETE    |     1 |
-+------------+-----------+-------+
+Once it's complete, you should see something like this once you type:
 
-
+```bash
+$ sudo tail -30 /var/log/cloud-init-output.log
 
 This is your host IP address: 192.168.122.11
 This is your host IPv6 address: ::1
 Horizon is now available at http://192.168.122.11/dashboard
 Keystone is serving at http://192.168.122.11/identity/
 The default users are: admin and demo
-The password: mycloudpwd
+The password: MYSECRET@PWD
 
 Services are running under systemd unit files.
 For more information see:
@@ -449,7 +393,7 @@ OS Version: Ubuntu 22.04 jammy
 Cloud-init v. 23.2.1-0ubuntu0~22.04.1 finished at Thu, 20 Jul 2023 23:05:34 +0000. Datasource DataSourceNoCloud [seed=/dev/sr0][dsmode=net].  Up 696.32 second
 ```
 
-### Dashboard
+## Dashboard
 
 In order to open a dashboard, click this [http://192.168.122.11/dashboard/project/](http://192.168.122.11/dashboard/project/).
 
@@ -465,7 +409,7 @@ In order to install `OpenStack CLI` type:
 $ sudo apt install python3-openstackclient
 ```
 
-Next, navigate to dashboard and click at `Project / Api Access` and then press **Download OpenStack RC File.**
+Next, navigate to the dashboard and click at `Project / Api Access` and then press **Download OpenStack RC File.**
 
 Once you download file, type:
 
@@ -479,34 +423,89 @@ Now you should be able to operate using CLI:
 ```bash
 $ openstack catalog list
 
-+-------------+----------------+-----------------------------------------------------------------------------+
-| Name        | Type           | Endpoints                                                                   |
-+-------------+----------------+-----------------------------------------------------------------------------+
-| cinderv3    | volumev3       | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11/volume/v3/c1f273a25e4740c486cc58c2433326d5  |
-|             |                |                                                                             |
-| cinder      | block-storage  | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11/volume/v3/c1f273a25e4740c486cc58c2433326d5  |
-|             |                |                                                                             |
-| nova        | compute        | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11/compute/v2.1                                |
-|             |                |                                                                             |
-| glance      | image          | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11/image                                       |
-|             |                |                                                                             |
-| nova_legacy | compute_legacy | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11/compute/v2/c1f273a25e4740c486cc58c2433326d5 |
-|             |                |                                                                             |
-| keystone    | identity       | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11/identity                                    |
-|             |                |                                                                             |
-| placement   | placement      | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11/placement                                   |
-|             |                |                                                                             |
-| neutron     | network        | RegionOne                                                                   |
-|             |                |   public: http://192.168.122.11:9696/networking                             |
-|             |                |                                                                             |
-+-------------+----------------+-----------------------------------------------------------------------------+
++-------------+-----------------+------------------------------------------------------------------------------+
+| Name        | Type            | Endpoints                                                                    |
++-------------+-----------------+------------------------------------------------------------------------------+
+| nova        | compute         | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/compute/v2.1                                 |
+|             |                 |                                                                              |
+| cinder      | block-storage   | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/volume/v3/af2479122d5343b3896dbc6693ebab4b   |
+|             |                 |                                                                              |
+| nova_legacy | compute_legacy  | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/compute/v2/af2479122d5343b3896dbc6693ebab4b  |
+|             |                 |                                                                              |
+| heat-cfn    | cloudformation  | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/heat-api-cfn/v1                              |
+|             |                 |                                                                              |
+| heat        | orchestration   | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/heat-api/v1/af2479122d5343b3896dbc6693ebab4b |
+|             |                 |                                                                              |
+| senlin      | clustering      | RegionOne                                                                    |
+|             |                 |   internal: http://192.168.122.11/cluster                                    |
+|             |                 | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/cluster                                      |
+|             |                 | RegionOne                                                                    |
+|             |                 |   admin: http://192.168.122.11/cluster                                       |
+|             |                 |                                                                              |
+| neutron     | network         | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11:9696/networking                              |
+|             |                 |                                                                              |
+| sahara      | data-processing | RegionOne                                                                    |
+|             |                 |   admin: http://192.168.122.11:8386                                          |
+|             |                 | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11:8386                                         |
+|             |                 | RegionOne                                                                    |
+|             |                 |   internal: http://192.168.122.11:8386                                       |
+|             |                 |                                                                              |
+| mistral     | workflowv2      | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11:8989/v2                                      |
+|             |                 | RegionOne                                                                    |
+|             |                 |   admin: http://192.168.122.11:8989/v2                                       |
+|             |                 | RegionOne                                                                    |
+|             |                 |   internal: http://192.168.122.11:8989/v2                                    |
+|             |                 |                                                                              |
+| keystone    | identity        | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/identity                                     |
+|             |                 |                                                                              |
+| placement   | placement       | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/placement                                    |
+|             |                 |                                                                              |
+| ec2         | ec2             | RegionOne                                                                    |
+|             |                 |   internal: http://192.168.122.11:8788/                                      |
+|             |                 | RegionOne                                                                    |
+|             |                 |   admin: http://192.168.122.11:8788/                                         |
+|             |                 | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11:8788/                                        |
+|             |                 |                                                                              |
+| trove       | database        | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11:8779/v1.0/af2479122d5343b3896dbc6693ebab4b   |
+|             |                 | RegionOne                                                                    |
+|             |                 |   internal: http://192.168.122.11:8779/v1.0/af2479122d5343b3896dbc6693ebab4b |
+|             |                 | RegionOne                                                                    |
+|             |                 |   admin: http://192.168.122.11:8779/v1.0/af2479122d5343b3896dbc6693ebab4b    |
+|             |                 |                                                                              |
+| s3          | s3              | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11:3334/                                        |
+|             |                 | RegionOne                                                                    |
+|             |                 |   internal: http://192.168.122.11:3334/                                      |
+|             |                 | RegionOne                                                                    |
+|             |                 |   admin: http://192.168.122.11:3334/                                         |
+|             |                 |                                                                              |
+| glance      | image           | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/image                                        |
+|             |                 |                                                                              |
+| cinderv3    | volumev3        | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/volume/v3/af2479122d5343b3896dbc6693ebab4b   |
+|             |                 |                                                                              |
+| barbican    | key-manager     | RegionOne                                                                    |
+|             |                 |   internal: http://192.168.122.11/key-manager                                |
+|             |                 | RegionOne                                                                    |
+|             |                 |   admin: http://192.168.122.11/key-manager                                   |
+|             |                 | RegionOne                                                                    |
+|             |                 |   public: http://192.168.122.11/key-manager                                  |
+|             |                 |                                                                              |
++-------------+-----------------+------------------------------------------------------------------------------+
 ```
 
 ```bash
@@ -535,6 +534,27 @@ In order to destroy machine (volumes), type:
 
 ```bash
 $ terraform destroy
+
+Plan: 0 to add, 0 to change, 3 to destroy.
+
+Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value: yes
+
+libvirt_domain.domain-distro[0]: Destroying... [id=0eb6ad1f-b42b-4fd9-949f-175e3868e7db]
+libvirt_domain.domain-distro[0]: Destruction complete after 0s
+libvirt_cloudinit_disk.commoninit[0]: Destroying... [id=/home/runner/repos/vye/volumes/commoninit-ubuntu.iso;129dd9d9-c055-4366-aae0-530b2badc23a]
+libvirt_volume.distro-qcow2[0]: Destroying... [id=/home/runner/repos/vye/volumes/ubuntu.qcow2]
+libvirt_cloudinit_disk.commoninit[0]: Destruction complete after 0s
+libvirt_volume.distro-qcow2[0]: Destruction complete after 0s
+```
+
+To remove SSH known host, type:
+
+```bash
+$ ssh-keygen -f "$HOME/.ssh/known_hosts" -R "192.168.122.11"
 ```
 
 **Note**: *This will destroy your all current work.*
@@ -559,3 +579,4 @@ $ terraform destroy
 4. Yu Ping @ [**Provisioning Multiple Linux Distributions using Terraform Provider for Libvirt**](https://yping88.medium.com/provisioning-multiple-linux-distributions-using-terraform-provider-for-libvirt-632186f1c007)
 
 5. Harshavardhan Katkam @ [**Best practices for writing Terraform code**](https://awstip.com/best-practices-for-writing-terraform-code-852aad68caa1)
+
