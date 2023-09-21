@@ -399,7 +399,7 @@ In order to open a dashboard, click this [http://192.168.122.11/dashboard/projec
 
 You should see something like this:
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1689895339349/f11f37e6-8c9a-4179-bd03-1dcb3b7791a2.png align="center")
+![OpenStackUI](https://cdn.hashnode.com/res/hashnode/image/upload/v1689895339349/f11f37e6-8c9a-4179-bd03-1dcb3b7791a2.png)
 
 CLI
 
