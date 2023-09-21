@@ -68,7 +68,7 @@ mkdir -p sources templates volumes ssh
 Now we need to have a source for our server. The simplest way is to download an image for the cloud hosted by Ubuntu creators and use it as our source:
 
 ```bash
-wget -O ubuntu.qcow2 https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+wget -O sources/ubuntu.qcow2 https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 qemu-img resize sources/ubuntu.qcow2 100G
 ```
 
@@ -92,10 +92,6 @@ sudo service libvirtd restart
 ### Storage pool
 
 Create a folder with the name `volumes` under the project root directory to host the new pool:
-
-```bash
-$ sudo mkdir $HOME/terraform/volumes
-```
 
 Next type `virsh` and:
 
