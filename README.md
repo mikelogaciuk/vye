@@ -4,9 +4,7 @@
 
 ## About
 
-`Vye` is a codename for home-cloud `Terraform` deployment model, described as a side project in an article [Why my GitHub profile is empty?](https://mlog.hashnode.dev/why-my-github-profile-is-empty).
-
-It is a virtual machine that comes with Ubuntu Server and OpenStack installed used to mimic a true private cloud environment. Originally hosted as a VM on PC with: 16 vCPUs and 48GB of RAM, but in order to sustain host operability - it is set to use 12 vCPUs and 40GBs of RAM.
+`Vye` is a codename for home-cloud `Terraform` deployment model and it is a virtual machine that comes with Ubuntu Server and OpenStack installed used to mimic a true private cloud environment. Originally hosted as a VM on PC with: 16 vCPUs and 48GB of RAM, but in order to sustain host operability - it is set to use 12 vCPUs and 40GBs of RAM.
 
 ## Name origin
 
@@ -563,7 +561,6 @@ $ ssh-keygen -f "$HOME/.ssh/known_hosts" -R "192.168.122.11"
 
 * Official **DevStack** docs can be found [**here**](https://docs.openstack.org/devstack/latest/guides/single-vm.html).
 
-
 ## References
 
 1. DevStack @ [Cloud-Init](https://docs.openstack.org/devstack/latest/guides/single-vm.html)
@@ -575,4 +572,3 @@ $ ssh-keygen -f "$HOME/.ssh/known_hosts" -R "192.168.122.11"
 4. Yu Ping @ [**Provisioning Multiple Linux Distributions using Terraform Provider for Libvirt**](https://yping88.medium.com/provisioning-multiple-linux-distributions-using-terraform-provider-for-libvirt-632186f1c007)
 
 5. Harshavardhan Katkam @ [**Best practices for writing Terraform code**](https://awstip.com/best-practices-for-writing-terraform-code-852aad68caa1)
-
