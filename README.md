@@ -77,8 +77,8 @@ Explanation: First we downloaded the cloud image, then we resized it for further
 Generate a new key pair using the RSA algorithm if no key pair exists:
 
 ```bash
-ssh-keygen -t rsa -b 4096 -f $HOME/.ssh/id_rsa -N ""
-ln -s $HOME/.ssh/id_rsa.pub $HOME/repos/vye/ssh/
+ssh-keygen -t rsa -b 4096 -f $HOME/.ssh/vye -N ""
+ln -s $HOME/.ssh/vye.pub $HOME/repos/vye/ssh/
 ```
 
 If you encounter permission problems, set set `security_driver = "none"` in `/etc/libvirt/qemu.conf` and restart the service using:
@@ -282,7 +282,7 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   pool  = "vye"
   user_data = templatefile("${path.module}/templates/user_data.tpl", {
     host_name = var.distros[count.index]
-    auth_key  = file("${path.module}/ssh/id_rsa.pub")
+    auth_key  = file("${path.module}/ssh/vye.pub")
     api_key   = var.dev_stack_api_key
   })
   network_config = templatefile("${path.module}/templates/network_config.tpl", {
